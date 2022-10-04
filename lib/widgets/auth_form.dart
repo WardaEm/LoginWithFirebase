@@ -1,8 +1,11 @@
 import 'package:dre/screens/auth_screen.dart';
 import 'package:dre/screens/forget.dart';
+import 'package:dre/screens/home.dart';
 import 'package:dre/services/auth.dart';
 import 'package:dre/widgets/components.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 class AuthForm extends StatefulWidget {
   final AuthType authType;
 
@@ -17,6 +20,8 @@ class _AuthFormState extends State<AuthForm> {
 var emailcontroller=TextEditingController();
 var passcontroller=TextEditingController();
   final _formKey = GlobalKey<FormState>();
+final FirebaseAuth auth=FirebaseAuth.instance;
+final GoogleSignIn googleSignIn=GoogleSignIn();
   AuthBase authBase=AuthBase();
   @override
   Widget build(BuildContext context) {
@@ -81,10 +86,56 @@ var passcontroller=TextEditingController();
                 style: TextStyle(fontSize: 20),)),
 
               TextButton(onPressed: (){
-                Navigator.push(context,MaterialPageRoute(builder:(context)=>Forget() ));}, child: Text('forget password'))]
+                Navigator.push(context,MaterialPageRoute(builder:(context)=>Forget() ));}, child: Text('forget password')),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: TextButton(
+
+                  onPressed: () async{
+                    await signLnWithGoogle();
+                    setState(() {
+
+                    });
+                  },
+                  child: Text('Sign in with Google',style: TextStyle(
+                      fontSize: 25
+                  ),),
+                ),
+              ),
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: TextButton(
+
+            onPressed: ()async {
+              await signOut();
+              setState(() {
+
+              });
+            },
+            child: Text('Sign out with Google',style: TextStyle(
+                fontSize: 25
+            ),),
+          ),
+        )
 
 
-
-    )));
+   ] )));
   }
+Future<void> signLnWithGoogle()async {
+  GoogleSignInAccount? googleSignInAccount=await googleSignIn.signIn();
+  GoogleSignInAuthentication googleSignInAuthentication=await googleSignInAccount!.authentication;
+  AuthCredential authCredential=GoogleAuthProvider.credential(idToken: googleSignInAuthentication.idToken,accessToken: googleSignInAuthentication.accessToken);
+  UserCredential authResult=await auth.signInWithCredential(authCredential);
+  User? user=authResult.user;
+  print('user email=${user!.email}');
+
 }
+
+Future <void> signOut()async {
+  await googleSignIn.signOut();
+  print('sign out');
+}
+}
+
+
+
